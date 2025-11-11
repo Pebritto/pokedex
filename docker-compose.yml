@@ -1,0 +1,36 @@
+version: "3.9"
+
+services:
+  db:
+    image: postgres:15
+    container_name: pokedex_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: pokedex
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    container_name: pokedex_backend
+    depends_on:
+      - db
+    environment:
+      DATABASE_URL: postgresql+psycopg2://postgres:postgres@db:5432/pokedex
+      FLASK_ENV: development
+      SECRET_KEY: super-secret-key
+      CORS_ORIGINS: http://localhost:3000,http://127.0.0.1:3000
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./backend:/app
+
+volumes:
+  pgdata:
+

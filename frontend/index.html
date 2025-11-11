@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Pokédex Integrada</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <div class="topbar__brand">
+        <img src="https://raw.githubusercontent.com/PokeAPI/media/master/logo/pokeapi_256.png" alt="PokéAPI Logo" />
+        <h1>Pokédex Integrada</h1>
+      </div>
+      <nav class="topbar__nav">
+        <button id="openRegister" class="button button--secondary">Cadastrar usuário</button>
+        <form id="loginForm" class="login-form">
+          <input type="email" id="loginEmail" placeholder="Email" required />
+          <input type="password" id="loginPassword" placeholder="Senha" required />
+          <button type="submit" class="button button--primary">Entrar</button>
+        </form>
+        <button id="logoutButton" class="button button--ghost hidden">Sair</button>
+      </nav>
+    </header>
+
+    <main class="container">
+      <section class="panel">
+        <div class="panel__header">
+          <h2>Pokémons disponíveis</h2>
+          <div class="filters">
+            <label for="typeFilter">Filtrar por tipo:</label>
+            <select id="typeFilter">
+              <option value="">Todos</option>
+            </select>
+          </div>
+        </div>
+        <div id="pokemonGrid" class="pokemon-grid" aria-live="polite"></div>
+      </section>
+
+      <section class="panel" id="capturedPanel">
+        <div class="panel__header">
+          <h2>Pokémons capturados</h2>
+          <p id="capturedInfo" class="subtitle">
+            Faça login para visualizar e registrar novas capturas.
+          </p>
+        </div>
+        <ul id="capturedList" class="captured-list"></ul>
+      </section>
+    </main>
+
+    <div id="registerModal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="registerTitle">
+      <div class="modal__content">
+        <button class="modal__close" id="closeRegister" aria-label="Fechar">&#10005;</button>
+        <h2 id="registerTitle">Cadastrar novo usuário</h2>
+        <form id="registerForm" class="form">
+          <label>
+            Nome
+            <input type="text" id="registerName" required />
+          </label>
+          <label>
+            Email
+            <input type="email" id="registerEmail" required />
+          </label>
+          <label>
+            Senha
+            <input type="password" id="registerPassword" required minlength="6" />
+          </label>
+          <button type="submit" class="button button--primary">Cadastrar</button>
+        </form>
+      </div>
+    </div>
+
+    <template id="pokemonCardTemplate">
+      <article class="pokemon-card">
+        <img class="pokemon-card__image" alt="" />
+        <div class="pokemon-card__body">
+          <h3 class="pokemon-card__name"></h3>
+          <ul class="pokemon-card__types"></ul>
+          <button class="button button--primary capture-button">Capturar</button>
+        </div>
+      </article>
+    </template>
+
+    <template id="capturedItemTemplate">
+      <li class="captured-item">
+        <span class="captured-item__name"></span>
+        <time class="captured-item__date"></time>
+      </li>
+    </template>
+
+    <div id="toast" class="toast hidden" role="status" aria-live="polite"></div>
+
+    <script src="./app.js" type="module"></script>
+  </body>
+</html>
+
