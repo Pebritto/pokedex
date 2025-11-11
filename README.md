@@ -1,129 +1,56 @@
-# Pokédex Integrada – Flask + Vanilla JS
+# Pokédex Integrada
 
-Projeto integrado das disciplinas de Frontend e Backend consumindo dados da PokéAPI, com API própria em Flask, banco PostgreSQL e interface estática em HTML/CSS/JS.
+Imagine ter uma Pokédex em português, bonita e simples de usar, que traz informações oficiais direto da PokéAPI. Este projeto entrega exatamente isso: uma experiência web onde você pode navegar pelos Pokémons, filtrar por tipo, fazer login e montar sua coleção virtual.
 
-## Estrutura do Repositório
+## Por que você vai gostar
 
-```
-├── backend/        # Aplicação Flask
-│   ├── app/        # Código-fonte (models, rotas, autenticação, seed)
-│   └── migrations/ # Migrations geradas com Flask-Migrate
-├── frontend/       # Página estática (HTML, CSS, JS)
-├── docker-compose.yml
-└── requirements.txt
-```
+- Visual limpo inspirado na Pokédex clássica.
+- Lista sempre atualizada com nome, imagem, tipos e descrição rápida.
+- Filtro por tipo para encontrar rapidamente seu Pokémon favorito.
+- Botão “Capturar” para guardar seus preferidos e acompanhar tudo na sua conta.
+- Cadastro e login simples, com histórico de capturas salvo para você.
 
-## Backend (Flask)
+## Como começar
 
-### Pré-requisitos
+### Se recebeu um link pronto
+1. Abra o link no seu navegador preferido (Chrome, Firefox, Edge ou Safari).
+2. Crie sua conta na própria tela inicial ou entre com seu e-mail e senha.
+3. Explore, filtre, capture e veja sua coleção crescer na aba “Meus Pokémons”.
 
-- Python 3.11+
-- PostgreSQL 15+ (via Docker recomendado)
-- Pip + virtualenv
+### Se recebeu os arquivos para rodar no computador
+1. Peça (ou confira) o arquivo `docker-compose.yml` que acompanha o projeto.
+2. Instale o Docker Desktop (ou Docker Engine, se já usa Linux).
+3. No terminal, vá até a pasta enviada e execute `docker compose up`.
+4. Aguarde o carregamento inicial (o sistema busca os Pokémons automaticamente).
+5. Acesse `http://localhost:3000` no navegador para usar a Pokédex.
 
-### Instalação e execução (local)
+Se preferir, alguém com familiaridade técnica pode publicar o app em um serviço de hospedagem e compartilhar o link com você.
 
-```bash
-python3 -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
+## Dicas de uso
 
-export FLASK_APP=backend.app:create_app
-export FLASK_ENV=development
-export DATABASE_URL=postgresql+psycopg2://postgres:postgres@localhost:5432/pokedex
+- Use o campo de filtro para descobrir Pokémons por tipo (fogo, água, planta, etc.).
+- Clique em “Capturar” para salvar um Pokémon na sua conta; ele aparece na aba de capturas.
+- Caso o sistema peça login novamente, é só inserir e-mail e senha que você cadastrou.
+- Se tiver dificuldades de acesso, atualize a página ou verifique se a conexão com a internet está estável.
 
-flask db upgrade          # aplica migrations
-flask seed-pokemons       # importa pokémons da PokeAPI (151 por padrão)
-flask run                 # inicia servidor em http://localhost:5000
-```
+## Perguntas frequentes
 
-### Execução com Docker
+**Preciso pagar algo?**  
+Não! A Pokédex é totalmente gratuita.
 
-```bash
-docker compose up --build
-docker compose exec backend flask db upgrade
-docker compose exec backend flask seed-pokemons --limit 151
-```
+**Funciona no celular?**  
+Sim, a página se adapta a telas menores. Para uma experiência completa, recomendamos usar o modo paisagem.
 
-Variáveis principais (ajuste conforme necessário):
+**Perdi minha senha. E agora?**  
+Entre em contato com a pessoa ou equipe que disponibilizou a Pokédex para você; eles vão ajudar a redefinir a senha.
 
-- `DATABASE_URL`
-- `SECRET_KEY`
-- `CORS_ORIGINS` (origens permitidas para o frontend)
+**Preciso instalar alguma coisa além do navegador?**  
+Se você acessar via link, não. Caso esteja rodando nos arquivos, precisa apenas do Docker (ou de alguém para configurar por você).
 
-### Endpoints Disponíveis (`/api`)
+## Bastidores, caso tenha curiosidade
 
-- `GET /usuarios` – lista usuários cadastrados.
-- `POST /usuarios` – cria usuário (`nome`, `email`, `senha`).
-- `POST /auth/login` – autentica e retorna token Bearer.
-- `GET /pokemons?tipo=fire` – lista pokémons, com filtro opcional por tipo.
-- `POST /capturar` – registra captura (requer token). Corpo: `pokemon_id`.
-- `GET /usuarios/<id>/pokemons` – lista pokémons capturados por um usuário.
+- A Pokédex usa a PokéAPI oficial, garantindo dados confiáveis.
+- O backend foi construído em Flask (Python) e armazena informações em PostgreSQL.
+- O site é feito com HTML, CSS e JavaScript puro, garantindo rapidez e compatibilidade.
 
-Token Bearer deve ser enviado no header `Authorization: Bearer <token>`.
-
-### Seeds
-
-O comando `flask seed-pokemons` consome a PokéAPI e atualiza a tabela `pokemons`. Use a flag `--limit` para controlar a quantidade:
-
-```bash
-flask seed-pokemons --limit 50
-```
-
-## Frontend (Vanilla JS)
-
-Arquivos em `frontend/` podem ser servidos com qualquer servidor estático:
-
-```bash
-cd frontend
-python3 -m http.server 3000
-```
-
-Por padrão, o frontend consome `http://localhost:5000/api`. Para apontar para outra URL (ex.: backend hospedado), execute no console do navegador:
-
-```js
-localStorage.setItem("pokedex_api_url", "https://sua-api.com/api");
-```
-
-### Funcionalidades
-
-- Cards dinâmicos com nome, imagem, tipos e botão “Capturar”.
-- Filtro por tipo (select).
-- Modal para cadastro de novos usuários.
-- Login com email/senha e armazenamento de token.
-- Lista de pokémons capturados pelo usuário logado.
-
-### Publicação no GitHub Pages
-
-1. Faça deploy do diretório `frontend/` (branch `gh-pages` ou `/docs`).
-2. Ajuste `localStorage.pokedex_api_url` para apontar para o backend acessível publicamente.
-3. Garanta que o backend esteja disponível via HTTPS para evitar bloqueio pelo navegador.
-
-## Documentação Complementar
-
-Use estes tópicos como guia para produzir o PDF técnico:
-
-- Visão geral dos conceitos de API REST implementados.
-- Manipulação de DOM no frontend (templates, eventos, renderização dinâmica).
-- Fluxo de chamadas à Fetch API e tratamento de respostas/erros.
-- Modelo de dados e relacionamentos no PostgreSQL (diagrama + explicação das tabelas).
-- Descrição do processo de seed com a PokéAPI.
-
-### Vídeo Pitch
-
-Sugestão de roteiro (2–3 minutos):
-
-1. Introdução rápida do objetivo do projeto.
-2. Demonstração do backend (endpoints, seed, autenticação).
-3. Demonstração do frontend (cadastro, login, filtro, captura).
-4. Comentários finais e próximos passos.
-
-## Scripts Úteis
-
-- `flask db migrate -m "mensagem"` – cria novas migrations.
-- `flask db upgrade` – aplica migrations.
-- `flask seed-pokemons --limit 151` – atualiza tabela `pokemons`.
-
-## Contato
-
-Em caso de dúvidas ou bugs, abra uma issue descrevendo o passo a passo para reproduzir.
+Pronto! Agora é só aproveitar a jornada e montar sua equipe dos sonhos. Em caso de dúvidas ou sugestões, fale com quem compartilhou o projeto com você — adoramos receber feedback.
