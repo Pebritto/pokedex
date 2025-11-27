@@ -24,15 +24,27 @@ const elements = {
 };
 
 document.addEventListener("DOMContentLoaded", () => {
+  console.log("DOMContentLoaded - Iniciando aplicação");
   restoreSession();
   setupEventListeners();
   fetchPokemons();
 
   if (state.token && state.usuario) {
+    console.log("Usuário autenticado, buscando capturas...");
     fetchCaptured();
     toggleAuthUI(true);
   } else {
     toggleAuthUI(false);
+  }
+  
+  // Teste: verificar se o template existe
+  const template = document.querySelector("#capturedItemTemplate");
+  if (template) {
+    console.log("Template encontrado:", template);
+    const testButton = template.content.querySelector(".delete-button");
+    console.log("Botão no template:", testButton);
+  } else {
+    console.error("Template #capturedItemTemplate NÃO encontrado!");
   }
 });
 
@@ -51,6 +63,30 @@ function setupEventListeners() {
     const tipo = elements.typeFilter.value;
     fetchPokemons(tipo);
   });
+
+  // Event delegation para botões de exclusão (fallback)
+  if (elements.capturedList) {
+    console.log("Event delegation configurado para capturedList");
+    elements.capturedList.addEventListener("click", (e) => {
+      console.log("Clique detectado em capturedList", e.target, e.target.classList);
+      const deleteButton = e.target.closest(".delete-button");
+      if (deleteButton) {
+        console.log("Botão de exclusão encontrado via delegation");
+        e.preventDefault();
+        e.stopPropagation();
+        const item = deleteButton.closest(".captured-item");
+        if (item) {
+          const capturaId = item.dataset.capturaId;
+          console.log("capturaId encontrado via delegation:", capturaId);
+          if (capturaId) {
+            handleDelete(parseInt(capturaId), deleteButton);
+          }
+        }
+      }
+    });
+  } else {
+    console.error("elements.capturedList é null!");
+  }
 }
 
 function toggleModal(visible) {
@@ -257,6 +293,50 @@ async function fetchCaptured() {
   }
 }
 
+async function handleDelete(capturaId, button) {
+  console.log("=== handleDelete INICIADO ===", { capturaId, button, token: !!state.token });
+  
+  if (!state.token) {
+    console.log("Sem token, mostrando toast de erro");
+    showToast("Faça login para excluir pokémons.", true);
+    return;
+  }
+
+  if (!capturaId || isNaN(capturaId)) {
+    console.error("capturaId inválido:", capturaId);
+    showToast("Erro: ID da captura não encontrado.", true);
+    return;
+  }
+
+  console.log("Mostrando confirmação...");
+  if (!confirm("Tem certeza que deseja excluir este pokémon da sua coleção?")) {
+    console.log("Usuário cancelou a exclusão");
+    return;
+  }
+  
+  console.log("Usuário confirmou, iniciando exclusão...");
+
+  button.disabled = true;
+  try {
+    const response = await fetch(`${API_BASE_URL}/capturar/${capturaId}`, {
+      method: "DELETE",
+      headers: buildAuthHeaders(),
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || "Erro ao excluir captura.");
+    }
+
+    await fetchCaptured();
+    showToast("Pokémon excluído com sucesso!");
+  } catch (error) {
+    showToast(error.message, true);
+  } finally {
+    button.disabled = false;
+  }
+}
+
 function renderCaptured(capturas) {
   if (!capturas.length) {
     elements.capturedInfo.textContent = "Nenhum pokémon capturado ainda.";
@@ -268,12 +348,58 @@ function renderCaptured(capturas) {
   elements.capturedList.innerHTML = "";
   const template = document.querySelector("#capturedItemTemplate");
 
-  capturas.forEach(({ pokemon, data_captura }) => {
+  if (!template) {
+    console.error("Template #capturedItemTemplate não encontrado!");
+    return;
+  }
+
+  capturas.forEach(({ captura_id, pokemon, data_captura }) => {
+    if (!captura_id) {
+      console.warn("captura_id ausente, pulando item");
+      return;
+    }
+
     const item = template.content.cloneNode(true);
-    item.querySelector(".captured-item__name").textContent = pokemon.nome;
-    item.querySelector(".captured-item__date").textContent = formatDate(data_captura);
+    const listItem = item.querySelector(".captured-item");
+    if (!listItem) {
+      console.error("Elemento .captured-item não encontrado no template clonado");
+      return;
+    }
+    
+    listItem.dataset.capturaId = captura_id.toString();
+    
+    const nameEl = item.querySelector(".captured-item__name");
+    const dateEl = item.querySelector(".captured-item__date");
+    const deleteButton = item.querySelector(".delete-button");
+    
+    if (!nameEl || !dateEl) {
+      console.error("Elementos de nome ou data não encontrados");
+    }
+    
+    if (nameEl) nameEl.textContent = pokemon.nome;
+    if (dateEl) dateEl.textContent = formatDate(data_captura);
+    
+    // Adicionar item ao DOM primeiro
     elements.capturedList.appendChild(item);
+    
+    // Depois anexar event listener ao botão que agora está no DOM
+    const deleteButtonInDOM = listItem.querySelector(".delete-button");
+    if (deleteButtonInDOM) {
+      console.log("Anexando listener ao botão de exclusão para captura_id:", captura_id);
+      deleteButtonInDOM.addEventListener("click", (e) => {
+        console.log("Botão de exclusão clicado! captura_id:", captura_id);
+        e.preventDefault();
+        e.stopPropagation();
+        handleDelete(captura_id, deleteButtonInDOM);
+      });
+    } else {
+      console.error("Botão .delete-button não encontrado após adicionar ao DOM!");
+    }
   });
+  
+  // Verificar se os botões foram adicionados ao DOM
+  const buttonsInDOM = elements.capturedList.querySelectorAll(".delete-button");
+  console.log(`Total de botões de exclusão no DOM: ${buttonsInDOM.length}`);
 }
 
 function formatDate(isoDate) {

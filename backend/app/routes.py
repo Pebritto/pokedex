@@ -154,3 +154,19 @@ def pokemons_do_usuario(usuario_id: int):
 
     return jsonify({"usuario": {"id": usuario.id, "nome": usuario.nome}, "pokemons": capturados})
 
+
+@api_bp.delete("/capturar/<int:captura_id>")
+@login_required
+def excluir_captura(captura_id: int, usuario_autenticado: Usuario):
+    captura = Captura.query.get(captura_id)
+    if not captura:
+        return jsonify({"error": "Captura não encontrada"}), 404
+
+    if captura.usuario_id != usuario_autenticado.id:
+        return jsonify({"error": "Você não tem permissão para excluir esta captura"}), 403
+
+    db.session.delete(captura)
+    db.session.commit()
+
+    return jsonify({"message": "Captura excluída com sucesso"}), 200
+

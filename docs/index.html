@@ -83,8 +83,11 @@
 
     <template id="capturedItemTemplate">
       <li class="captured-item">
-        <span class="captured-item__name"></span>
-        <time class="captured-item__date"></time>
+        <div class="captured-item__info">
+          <span class="captured-item__name"></span>
+          <time class="captured-item__date"></time>
+        </div>
+        <button type="button" class="button button--danger delete-button" aria-label="Excluir pokémon capturado">Excluir</button>
       </li>
     </template>
 
